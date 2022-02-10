@@ -125,14 +125,26 @@ router.delete('/:id', async (req, res) => {
         message: "The user could not be removed",
       });
     }
-  // RETURN THE FRESHLY DELETED USER OBJECT
   // this needs a middleware to verify user id
 });
 
 //----------------------------GET POSTS-------------------------- 
 
 router.get('/:id/posts', (req, res) => {
-  // RETURN THE ARRAY OF USER POSTS
+  Users.getUserPosts(req.params.id)
+    .then(posts => {
+      if (posts.length > 0) {
+        res.status(200).json(posts);
+      } else {
+        res.status(404).json({ message: 'The user with the specified ID does not exist' });
+      }
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(500).json({
+        message: 'The posts information could not be retrieved',
+      });
+    });
   // this needs a middleware to verify user id
 });
 
