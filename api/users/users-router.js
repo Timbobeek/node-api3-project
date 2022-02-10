@@ -25,7 +25,7 @@ router.get('/:id', validateUserId, (req, res, next) => {
 
 //------------------------POST--------------------------
 
-router.post('/', validateUser, (req, res, next) => {
+router.post('/', validateUser, validatePost, (req, res, next) => {
   const { name } = req.body;
   if(!name) {
     res.status(400).json({
