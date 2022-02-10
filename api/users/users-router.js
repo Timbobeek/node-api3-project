@@ -71,6 +71,37 @@ router.post('/', (req, res) => {
 //------------------------PUT--------------------------------
 
 router.put('/:id', (req, res) => {
+  const { name } = req.body;
+  if(!name) {
+    res.status(400).json({
+      message: "The user is missing required name"
+    })
+  } else {
+    Users.getById(req.params.id)
+      .then(stuff=>{
+        if (!stuff){
+          res.status(404).json({
+            message: 'The post with the specified ID does not exist'
+          })
+        } else {
+          return Users.update(req.params.id, req.body)
+        }
+      })
+      .then(info => {
+        if (info) {
+          return Users.getById(req.params.id)
+        }
+      })
+      .then(user =>{
+        res.status(201).json(user)
+      })
+      .catch(err => {
+        res.status(500).json({
+          message: "There was an error while saving the user to the database",
+          error: err.message
+        })
+      })
+  }
   // RETURN THE FRESHLY UPDATED USER OBJECT
   // this needs a middleware to verify user id
   // and another middleware to check that the request body is valid
