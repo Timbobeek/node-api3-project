@@ -81,7 +81,7 @@ router.put('/:id', (req, res) => {
       .then(stuff=>{
         if (!stuff){
           res.status(404).json({
-            message: 'The post with the specified ID does not exist'
+            message: 'The user with the specified ID does not exist'
           })
         } else {
           return Users.update(req.params.id, req.body)
@@ -102,14 +102,29 @@ router.put('/:id', (req, res) => {
         })
       })
   }
-  // RETURN THE FRESHLY UPDATED USER OBJECT
   // this needs a middleware to verify user id
   // and another middleware to check that the request body is valid
 });
 
 //------------------------DELETE------------------------------
 
-router.delete('/:id', (req, res) => {
+router.delete('/:id', async (req, res) => {
+  try{
+    const user = await Users.getById(req.params.id)
+    if (!user){
+      res.status(404).json({
+        message: "The user with the specified ID does not exist"
+      })
+    } else {
+      await Users.remove(req.params.id)
+      res.json(user)
+    }
+  }catch(error) {
+      console.log(error);
+      res.status(500).json({
+        message: "The user could not be removed",
+      });
+    }
   // RETURN THE FRESHLY DELETED USER OBJECT
   // this needs a middleware to verify user id
 });
