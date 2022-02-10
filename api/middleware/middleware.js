@@ -31,6 +31,7 @@ function validateUser(req, res, next) {
       message: 'missing required name field'
     })
   } else {
+    req.name = name
     next()
   }
 }
@@ -42,6 +43,7 @@ function validatePost(req, res, next) {
       message: 'missing required text field'
     })
   } else {
+    req.text = text;
     next()
   }
 }

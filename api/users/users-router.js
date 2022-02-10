@@ -24,102 +24,61 @@ router.get('/:id', validateUserId, (req, res) => {
 
 //------------------------POST--------------------------
 
-router.post('/', validateUser, validatePost, (req, res, next) => {
-  const { name } = req.body;
-  if(!name) {
-    res.status(400).json({
-      message: "The user is missing required name"
+router.post('/', validateUser, (req, res, next) => {
+  Users.insert({ name: req.name})
+    .then(newUser => {
+      res.status(201).json(newUser)
     })
-  } else {
-    Users.insert({name})
-      .then(({id})=>{
-        return Users.getById(id)
-      })
-      .then(newUser => {
-        res.status(201).json(newUser)
-      })
-      .catch(next);
-  }
-  // this needs a middleware to check that the request body is valid
+    .catch(next)
 });
 
 //------------------------PUT--------------------------------
 
 router.put('/:id', validateUserId, validateUser, (req, res, next) => {
-  const { name } = req.body;
-  if(!name) {
-    res.status(400).json({
-      message: "The user is missing required name"
-    })
-  } else {
-    Users.getById(req.params.id)
-      .then(stuff=>{
-        if (!stuff){
-          res.status(404).json({
-            message: 'The user with the specified ID does not exist'
-          })
-        } else {
-          return Users.update(req.params.id, req.body)
-        }
-      })
-      .then(info => {
-        if (info) {
-          return Users.getById(req.params.id)
-        }
-      })
-      .then(user =>{
-        res.status(201).json(user)
-      })
-      .catch(next);
-  }
-  // this needs a middleware to verify user id
-  // and another middleware to check that the request body is valid
+  Users.update(req.params.id, {name: req.name} )
+  .then(()=>{
+    return Users.getById(req.params.id)
+  })
+  .then(user => {
+    res.json(user)
+  })
+  .catch(next)
 });
 
 //------------------------DELETE------------------------------
 
 router.delete('/:id', validateUserId, async (req, res, next) => {
   try{
-    const user = await Users.getById(req.params.id)
-    if (!user){
-      res.status(404).json({
-        message: "The user with the specified ID does not exist"
-      })
-    } else {
-      await Users.remove(req.params.id)
-      res.json(user)
-    }
+    await Users.remove(req.params.id)
+    res.json(req.user)
   }catch(error) {
-      console.log(error);
-      res.status(500).json({
-        message: "The user could not be removed",
-      });
+      next(error)
     }
-  // this needs a middleware to verify user id
 });
 
 //----------------------------GET POSTS-------------------------- 
 
-router.get('/:id/posts', validateUserId, (req, res, next) => {
-  Users.getUserPosts(req.params.id)
-    .then(posts => {
-      if (posts.length > 0) {
-        res.status(200).json(posts);
-      } else {
-        res.status(404).json({ message: 'The user with the specified ID does not exist' });
-      }
-    })
-    .catch(next);
-  // this needs a middleware to verify user id
+router.get('/:id/posts', validateUserId, async (req, res, next) => {
+  try {
+    const result = await Users.getUserPosts(req.params.id)
+    res.json(result)
+  } catch (error) {
+    next(error)
+  }
 });
 
 //----------------------------POST POSTS------------------------------
 
-router.post('/:id/posts', validateUserId, (req, res, next) => {
-
-  // RETURN THE NEWLY CREATED USER POST
-  // this needs a middleware to verify user id
-  // and another middleware to check that the request body is valid
+router.post('/:id/posts', validateUserId, validatePost, async (req, res, next) => {
+  try{
+    const result = await Posts.insert({
+      user_id: req.params.id,
+      text: req.text
+    })
+    res.status(201).json(result)
+  } catch (error){
+    next(error)
+  }
 });
 
 //----------------------------ERROR--------------------
