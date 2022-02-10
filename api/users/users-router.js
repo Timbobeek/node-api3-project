@@ -10,41 +10,22 @@ const router = express.Router();
 
 //------------------------GET----------------------------------
 
-router.get('/', (req, res) => {
+router.get('/', (req, res, next) => {
   Users.get(req.query)
     .then(users => {
       res.status(200).json(users);
     })
-    .catch(err => {
-      console.log(err);
-      res.status(500).json({
-        message: "The user information could not be retrieved",
-      })
-    })
+    .catch(next);
 });
 
-router.get('/:id', (req, res) => {
-  Users.getById(req.params.id)
-    .then(user => {
-      if (!user) {
-          res.status(404).json({
-            message: "The user with the specified ID was not found"
-          })
-        }
-        res.status(200).json(user)
-    })
-    .catch(err => {
-      res.status(500).json({
-        message: "The user information could not be retrieved",
-        error: err.message
-      })
-    })
+router.get('/:id', validateUserId, (req, res, next) => {
+  res.json(req.user)
   // this needs a middleware to verify user id
 });
 
 //------------------------POST--------------------------
 
-router.post('/', (req, res) => {
+router.post('/', (req, res, next) => {
   const { name } = req.body;
   if(!name) {
     res.status(400).json({
@@ -58,19 +39,14 @@ router.post('/', (req, res) => {
       .then(newUser => {
         res.status(201).json(newUser)
       })
-      .catch(err => {
-        res.status(500).json({
-          message: "There was an error while saving the user to the database",
-          error: err.message
-        })
-      })
+      .catch(next);
   }
   // this needs a middleware to check that the request body is valid
 });
 
 //------------------------PUT--------------------------------
 
-router.put('/:id', (req, res) => {
+router.put('/:id', validateUserId, (req, res, next) => {
   const { name } = req.body;
   if(!name) {
     res.status(400).json({
@@ -95,12 +71,7 @@ router.put('/:id', (req, res) => {
       .then(user =>{
         res.status(201).json(user)
       })
-      .catch(err => {
-        res.status(500).json({
-          message: "There was an error while saving the user to the database",
-          error: err.message
-        })
-      })
+      .catch(next);
   }
   // this needs a middleware to verify user id
   // and another middleware to check that the request body is valid
@@ -108,7 +79,7 @@ router.put('/:id', (req, res) => {
 
 //------------------------DELETE------------------------------
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', validateUserId, async (req, res, next) => {
   try{
     const user = await Users.getById(req.params.id)
     if (!user){
@@ -130,7 +101,7 @@ router.delete('/:id', async (req, res) => {
 
 //----------------------------GET POSTS-------------------------- 
 
-router.get('/:id/posts', (req, res) => {
+router.get('/:id/posts', validateUserId, (req, res, next) => {
   Users.getUserPosts(req.params.id)
     .then(posts => {
       if (posts.length > 0) {
@@ -139,21 +110,27 @@ router.get('/:id/posts', (req, res) => {
         res.status(404).json({ message: 'The user with the specified ID does not exist' });
       }
     })
-    .catch(error => {
-      console.log(error);
-      res.status(500).json({
-        message: 'The posts information could not be retrieved',
-      });
-    });
+    .catch(next);
   // this needs a middleware to verify user id
 });
 
 //----------------------------POST POSTS------------------------------
 
-router.post('/:id/posts', (req, res) => {
+router.post('/:id/posts', validateUserId, (req, res, next) => {
+
   // RETURN THE NEWLY CREATED USER POST
   // this needs a middleware to verify user id
   // and another middleware to check that the request body is valid
 });
+
+//----------------------------ERROR--------------------
+
+router.use((err, req, res, next)=>{
+  res.status(err.status || 500).json({
+    custom: 'oopsies',
+    message: err.message,
+    stack: err.stack
+  })
+})
 
 module.exports = router;
