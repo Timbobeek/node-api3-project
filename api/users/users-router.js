@@ -8,6 +8,8 @@ const Posts = require('../posts/posts-model');
 
 const router = express.Router();
 
+//------------------------GET----------------------------------
+
 router.get('/', (req, res) => {
   Users.get(req.query)
     .then(users => {
@@ -40,10 +42,33 @@ router.get('/:id', (req, res) => {
   // this needs a middleware to verify user id
 });
 
+//------------------------POST--------------------------
+
 router.post('/', (req, res) => {
-  // RETURN THE NEWLY CREATED USER OBJECT
+  const { name } = req.body;
+  if(!name) {
+    res.status(400).json({
+      message: "The user is missing required name"
+    })
+  } else {
+    Users.insert({name})
+      .then(({id})=>{
+        return Users.getById(id)
+      })
+      .then(newUser => {
+        res.status(201).json(newUser)
+      })
+      .catch(err => {
+        res.status(500).json({
+          message: "There was an error while saving the user to the database",
+          error: err.message
+        })
+      })
+  }
   // this needs a middleware to check that the request body is valid
 });
+
+//------------------------PUT--------------------------------
 
 router.put('/:id', (req, res) => {
   // RETURN THE FRESHLY UPDATED USER OBJECT
@@ -51,15 +76,21 @@ router.put('/:id', (req, res) => {
   // and another middleware to check that the request body is valid
 });
 
+//------------------------DELETE------------------------------
+
 router.delete('/:id', (req, res) => {
   // RETURN THE FRESHLY DELETED USER OBJECT
   // this needs a middleware to verify user id
 });
 
+//----------------------------GET POSTS-------------------------- 
+
 router.get('/:id/posts', (req, res) => {
   // RETURN THE ARRAY OF USER POSTS
   // this needs a middleware to verify user id
 });
+
+//----------------------------POST POSTS------------------------------
 
 router.post('/:id/posts', (req, res) => {
   // RETURN THE NEWLY CREATED USER POST
