@@ -18,9 +18,8 @@ router.get('/', (req, res, next) => {
     .catch(next);
 });
 
-router.get('/:id', validateUserId, (req, res, next) => {
+router.get('/:id', validateUserId, (req, res) => {
   res.json(req.user)
-  // this needs a middleware to verify user id
 });
 
 //------------------------POST--------------------------
