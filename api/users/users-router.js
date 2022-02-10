@@ -25,7 +25,7 @@ router.get('/:id', validateUserId, (req, res, next) => {
 
 //------------------------POST--------------------------
 
-router.post('/', (req, res, next) => {
+router.post('/', validateUser, (req, res, next) => {
   const { name } = req.body;
   if(!name) {
     res.status(400).json({
@@ -46,7 +46,7 @@ router.post('/', (req, res, next) => {
 
 //------------------------PUT--------------------------------
 
-router.put('/:id', validateUserId, (req, res, next) => {
+router.put('/:id', validateUserId, validateUser, (req, res, next) => {
   const { name } = req.body;
   if(!name) {
     res.status(400).json({
